@@ -1,0 +1,192 @@
+export const newsData = [
+  {
+    id: '1',
+    category: 'Top News',
+    headline: 'OpenAI Unveils GPT-5 with Revolutionary Reasoning Capabilities',
+    description: 'The new model demonstrates unprecedented problem-solving abilities and multimodal understanding across text, images, and audio.',
+    time: '2h ago',
+    source: 'Tech Chronicle',
+    image: 'ai-brain',
+    content: 'OpenAI has announced the release of GPT-5, marking a significant leap in artificial intelligence capabilities. The new model showcases advanced reasoning abilities that surpass previous iterations, with improved accuracy in complex problem-solving tasks. Industry experts are calling this a watershed moment in AI development.'
+  },
+  {
+    id: '2',
+    category: 'Global',
+    headline: 'UN Proposes International Framework for AI Governance',
+    description: 'Global leaders convene to establish ethical guidelines and safety standards for artificial general intelligence development.',
+    time: '4h ago',
+    source: 'World News Today',
+    image: 'government',
+    content: 'The United Nations has proposed a comprehensive framework for international AI governance, bringing together nations to address the challenges posed by rapidly advancing artificial intelligence technologies. The framework focuses on ethical development, safety standards, and equitable access to AI benefits.'
+  },
+  {
+    id: '3',
+    category: 'Health',
+    headline: 'AI Diagnostic Tool Detects Cancer with 99% Accuracy in Clinical Trials',
+    description: 'Machine learning system outperforms traditional methods in early detection of multiple cancer types, offering hope for earlier intervention.',
+    time: '5h ago',
+    source: 'Medical Daily',
+    image: 'medical',
+    content: 'A groundbreaking AI diagnostic tool has achieved 99% accuracy in detecting various types of cancer during extensive clinical trials. The system uses advanced deep learning algorithms to analyze medical imaging and patient data, potentially revolutionizing early cancer detection and treatment outcomes.'
+  },
+  {
+    id: '4',
+    category: 'Science',
+    headline: 'DeepMind AI Solves 50-Year-Old Protein Folding Mystery',
+    description: 'AlphaFold 3 predicts protein structures with atomic precision, accelerating drug discovery and biological research.',
+    time: '6h ago',
+    source: 'Science Review',
+    image: 'science',
+    content: 'DeepMind\'s latest AlphaFold iteration has successfully solved complex protein folding challenges that have puzzled scientists for decades. This breakthrough is expected to dramatically accelerate drug discovery and advance our understanding of biological processes at the molecular level.'
+  },
+  {
+    id: '5',
+    category: 'Entertainment',
+    headline: 'Hollywood Studios Adopt AI Tools While Protecting Creative Rights',
+    description: 'New agreement ensures AI assists filmmakers without replacing human creativity in the entertainment industry.',
+    time: '7h ago',
+    source: 'Entertainment Weekly',
+    image: 'entertainment',
+    content: 'Major Hollywood studios have reached a landmark agreement on AI integration in film production. The deal establishes clear guidelines for using AI tools to enhance visual effects and streamline production while safeguarding the creative contributions and employment of human artists and technicians.'
+  },
+  {
+    id: '6',
+    category: 'Top News',
+    headline: 'Tech Giants Pledge $100 Billion for Safe AI Development',
+    description: 'Leading technology companies commit massive funding to ensure AI alignment and safety research over the next decade.',
+    time: '8h ago',
+    source: 'Tech Chronicle',
+    image: 'technology',
+    content: 'In an unprecedented move, major technology companies including Google, Microsoft, and Meta have jointly pledged $100 billion toward AI safety research and development. The initiative aims to ensure artificial intelligence systems remain aligned with human values and interests as capabilities continue to advance.'
+  },
+  {
+    id: '7',
+    category: 'Lifestyle',
+    headline: 'AI Personal Assistants Transform Daily Routines for Millions',
+    description: 'Smart home integration and personalized AI companions reshape how people manage their daily lives and productivity.',
+    time: '10h ago',
+    source: 'Lifestyle Magazine',
+    image: 'lifestyle',
+    content: 'AI-powered personal assistants have become integral to daily life for millions of users worldwide. These intelligent systems now seamlessly integrate with smart home devices, manage schedules, provide personalized recommendations, and adapt to individual preferences, fundamentally changing how people approach productivity and home management.'
+  },
+  {
+    id: '8',
+    category: 'Sports',
+    headline: 'AI Analytics Revolutionize Professional Sports Strategy',
+    description: 'Teams leverage machine learning to optimize player performance, predict opponent tactics, and reduce injury risks.',
+    time: '12h ago',
+    source: 'Sports Network',
+    image: 'sports',
+    content: 'Professional sports teams are increasingly relying on AI-powered analytics to gain competitive advantages. Advanced algorithms analyze player performance data, predict injury risks, and provide strategic insights that were previously impossible to obtain, leading to smarter game plans and improved athlete safety.'
+  },
+  {
+    id: '9',
+    category: 'Global',
+    headline: 'EU Implements World\'s First Comprehensive AI Regulation Act',
+    description: 'New legislation sets strict requirements for high-risk AI systems while fostering innovation in the technology sector.',
+    time: '14h ago',
+    source: 'Euro News',
+    image: 'policy',
+    content: 'The European Union has officially implemented the AI Act, becoming the first region to establish comprehensive regulations for artificial intelligence. The legislation categorizes AI systems by risk level and imposes strict requirements on high-risk applications while maintaining flexibility for innovation in lower-risk areas.'
+  },
+  {
+    id: '10',
+    category: 'Science',
+    headline: 'Quantum AI Achieves Breakthrough in Material Science',
+    description: 'Hybrid quantum-classical system discovers new materials with unprecedented properties for energy storage.',
+    time: '16h ago',
+    source: 'Science Today',
+    image: 'quantum',
+    content: 'Researchers have achieved a major breakthrough by combining quantum computing with AI to discover new materials with extraordinary properties. The hybrid system has identified compounds with unprecedented energy storage capabilities, potentially revolutionizing battery technology and renewable energy systems.'
+  }
+];
+
+export const categories = {
+  en: ['Top News', 'Global', 'Entertainment', 'Sports', 'Lifestyle', 'Videos', 'Science', 'Health'],
+  hi: ['शीर्ष समाचार', 'वैश्विक', 'मनोरंजन', 'खेल', 'जीवनशैली', 'वीडियो', 'विज्ञान', 'स्वास्थ्य'],
+  ur: ['اہم خبریں', 'عالمی', 'تفریح', 'کھیل', 'طرز زندگی', 'ویڈیوز', 'سائنس', 'صحت']
+};
+
+export const translations = {
+  en: {
+    appName: 'Millat Times',
+    live: 'LIVE',
+    search: 'Search',
+    home: 'Home',
+    bookmarks: 'Bookmarks',
+    settings: 'Settings',
+    languages: 'Languages',
+    videos: 'Videos',
+    profile: 'Profile',
+    searchPlaceholder: 'Search news...',
+    selectLanguage: 'Select Language',
+    english: 'English',
+    hindi: 'हिंदी (Hindi)',
+    urdu: 'اردو (Urdu)',
+    readMore: 'Read More',
+    relatedNews: 'Related News',
+    shareArticle: 'Share Article',
+    saveArticle: 'Save Article',
+    latestVideos: 'Latest Videos',
+    myProfile: 'My Profile',
+    accountSettings: 'Account Settings',
+    notifications: 'Notifications',
+    privacyPolicy: 'Privacy Policy',
+    termsOfService: 'Terms of Service',
+    logout: 'Logout'
+  },
+  hi: {
+    appName: 'मिल्लत टाइम्स',
+    live: 'लाइव',
+    search: 'खोजें',
+    home: 'होम',
+    bookmarks: 'बुकमार्क',
+    settings: 'सेटिंग्स',
+    languages: 'भाषाएँ',
+    videos: 'वीडियो',
+    profile: 'प्रोफ़ाइल',
+    searchPlaceholder: 'समाचार खोजें...',
+    selectLanguage: 'भाषा चुनें',
+    english: 'English',
+    hindi: 'हिंदी (Hindi)',
+    urdu: 'اردو (Urdu)',
+    readMore: 'और पढ़ें',
+    relatedNews: 'संबंधित समाचार',
+    shareArticle: 'लेख साझा करें',
+    saveArticle: 'लेख सहेजें',
+    latestVideos: 'नवीनतम वीडियो',
+    myProfile: 'मेरी प्रोफ़ाइल',
+    accountSettings: 'खाता सेटिंग्स',
+    notifications: 'सूचनाएं',
+    privacyPolicy: 'गोपनीयता नीति',
+    termsOfService: 'सेवा की शर्तें',
+    logout: 'लॉगआउट'
+  },
+  ur: {
+    appName: 'ملت ٹائمز',
+    live: 'لائیو',
+    search: 'تلاش',
+    home: 'ہوم',
+    bookmarks: 'بُک مارکس',
+    settings: 'ترتیبات',
+    languages: 'زبانیں',
+    videos: 'ویڈیوز',
+    profile: 'پروفائل',
+    searchPlaceholder: 'خبریں تلاش کریں...',
+    selectLanguage: 'زبان منتخب کریں',
+    english: 'English',
+    hindi: 'हिंदी (Hindi)',
+    urdu: 'اردو (Urdu)',
+    readMore: 'مزید پڑھیں',
+    relatedNews: 'متعلقہ خبریں',
+    shareArticle: 'مضمون شیئر کریں',
+    saveArticle: 'مضمون محفوظ کریں',
+    latestVideos: 'تازہ ترین ویڈیوز',
+    myProfile: 'میری پروفائل',
+    accountSettings: 'اکاؤنٹ کی ترتیبات',
+    notifications: 'اطلاعات',
+    privacyPolicy: 'پرائیویسی پالیسی',
+    termsOfService: 'سروس کی شرائط',
+    logout: 'لاگ آؤٹ'
+  }
+};
