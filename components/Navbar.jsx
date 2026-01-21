@@ -1,12 +1,12 @@
+import { useRouter } from "expo-router";
 import { Search } from 'lucide-react-native';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import LiveIcon from '../assets/live.png';
 import MillatTimesLogo from '../assets/MillatTimesLogo.avif';
-import { useSearch } from '../context/SearchPageToggle';
 import { translations } from '../data/news-data';
 
 export function PrimaryNavbar({ language, onMenuClick, onLogoClick }) {
-  const { openSearch } = useSearch();
+  const router = useRouter();
   const t = translations[language];
   const isRTL = language === 'ur';
   const styles = getStyles(isRTL);
@@ -37,11 +37,10 @@ export function PrimaryNavbar({ language, onMenuClick, onLogoClick }) {
         {/* Right: Search + Live Button */}
         <View style={styles.rightContainer}>
           <Pressable
-            onPress={openSearch}
+            onPress={() => router.push('/search')}
             style={styles.iconButton}
           >
             <Search size={27} style={styles.searchIcon} />
-            {/* <Ionicons name="search" size={20} color="#0a0a0a" /> */}
           </Pressable>
 
           <View style={styles.liveButton}>

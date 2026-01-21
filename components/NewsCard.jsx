@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Share } from 'lucide-react-native';
 import { useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 export function NewsCard({ news, language }) {
   const router = useRouter();
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -38,29 +38,32 @@ export function NewsCard({ news, language }) {
       {/* Image */}
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80' }}
+          source={{ uri: news.image }}
           style={styles.image}
+          contentFit="cover"
+          transition={200}
         />
       </View>
+      <View style={styles.footer}>
+        {/* Timestamp */}
+        <Text style={styles.timestamp}>{news.time}</Text>
 
-      {/* Timestamp */}
-      <Text style={styles.timestamp}>{news.time}</Text>
-
-      {/* Actions */}
-      <View style={styles.actionsContainer}>
-        <Pressable style={styles.actionButton}>
-          <Ionicons name="chatbox-outline" size={20} color="#4b5563" />
-        </Pressable>
-        <Pressable style={styles.actionButton} onPress={handleBookmarkPress}>
-          <Ionicons
-            name={isBookmarked ? "bookmark" : "bookmark-outline"}
-            size={20}
-            color={isBookmarked ? "#ffd500ff" : "#4b5563"}
-          />
-        </Pressable>
-        <Pressable style={styles.actionButton} onPress={handleSharePress}>
-          <Ionicons name="share-social-outline" size={20} color="#4b5563" />
-        </Pressable>
+        {/* Actions */}
+        <View style={styles.actionsContainer}>
+          {/* <Pressable style={styles.actionButton}>
+            <Ionicons name="chatbox-outline" size={20} color="#4b5563" />
+          </Pressable> */}
+          <Pressable style={styles.actionButton} onPress={handleBookmarkPress}>
+            <Ionicons
+              name={isBookmarked ? "bookmark" : "bookmark-outline"}
+              size={20}
+              color={isBookmarked ? "#ffd500ff" : "#4b5563"}
+            />
+          </Pressable>
+          <Pressable style={styles.actionButton} onPress={handleSharePress}>
+            <Ionicons name="share-social-outline" size={20} color="#4b5563" />
+          </Pressable>
+        </View>
       </View>
     </Pressable>
   );
@@ -101,24 +104,26 @@ function getStyles(isRTL) {
       width: '100%',
       height: '100%',
     },
+    footer: {
+      flexDirection: isRTL ? 'row-reverse' : 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
     timestamp: {
       fontSize: 14,
       fontFamily: 'NotoSerif_400Regular',
       color: '#9ca3af',
-      marginBottom: 16,
       textAlign: isRTL ? 'right' : 'left',
     },
     actionsContainer: {
       flexDirection: isRTL ? 'row-reverse' : 'row',
-      justifyContent: 'space-around',
-      borderTopWidth: 1,
-      borderTopColor: '#f3f4f6',
-      paddingTop: 16,
+      gap: 30,
+      justifyContent: 'space-evenly',
+      paddingHorizontal: 20,
     },
     actionButton: {
-      flex: 1,
       alignItems: 'center',
-      paddingVertical: 8,
+      justifyContent: 'center',
     },
   });
 }

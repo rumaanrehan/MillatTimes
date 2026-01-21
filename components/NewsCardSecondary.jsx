@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export function NewsCardSecondary({ news, language }) {
     const router = useRouter();
@@ -26,31 +27,34 @@ export function NewsCardSecondary({ news, language }) {
                     <Text style={styles.headline} numberOfLines={3}>
                         {news.headline}
                     </Text>
-                    <Text style={styles.timestamp}>{news.time}</Text>
                 </View>
 
                 {/* Right column: Image */}
                 <View style={styles.imageContainer}>
                     <Image
-                        source={{ uri: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&q=80' }}
+                        source={{ uri: news.image }}
                         style={styles.image}
+                        contentFit="cover"
+                        transition={200}
                     />
                 </View>
             </View>
-
-            {/* Actions (Bottom) */}
-            <View style={styles.actionsContainer}>
-                <View style={styles.leftActions}>
-                    <Pressable style={styles.actionButton}>
-                        <Ionicons name="chatbox-outline" size={18} color="#4b5563" />
-                    </Pressable>
-                    <Pressable style={styles.actionButton} onPress={handleBookmarkPress}>
-                        <Ionicons
-                            name={isBookmarked ? "bookmark" : "bookmark-outline"}
-                            size={18}
-                            color={isBookmarked ? "#ffd500ff" : "#4b5563"}
-                        />
-                    </Pressable>
+            <View style={styles.footer}>
+                <Text style={styles.timestamp}>{news.time}</Text>
+                {/* Actions (Bottom) */}
+                <View style={styles.actionsContainer}>
+                    <View style={styles.leftActions}>
+                        <Pressable style={styles.actionButton}>
+                            <Ionicons name="chatbox-outline" size={18} color="#4b5563" />
+                        </Pressable>
+                        <Pressable style={styles.actionButton} onPress={handleBookmarkPress}>
+                            <Ionicons
+                                name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                                size={18}
+                                color={isBookmarked ? "#ffd500ff" : "#4b5563"}
+                            />
+                        </Pressable>
+                    </View>
                 </View>
             </View>
         </Pressable>
@@ -90,6 +94,12 @@ function getStyles(isRTL) {
             lineHeight: 22,
             textAlign: isRTL ? 'right' : 'left',
         },
+        footer: {
+            flexDirection: isRTL ? 'row-reverse' : 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: 12,
+        },
         timestamp: {
             fontSize: 12,
             fontFamily: 'NotoSerif_400Regular',
@@ -111,14 +121,14 @@ function getStyles(isRTL) {
             flexDirection: isRTL ? 'row-reverse' : 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginTop: 12,
+            gap: 16,
         },
         leftActions: {
             flexDirection: isRTL ? 'row-reverse' : 'row',
             gap: 16,
         },
         actionButton: {
-            padding: 4,
+            paddingHorizontal: 4,
         },
     });
 }
