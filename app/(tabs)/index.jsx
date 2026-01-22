@@ -11,7 +11,7 @@ import { usePosts } from "../../hooks/usePosts";
 function HomeContent() {
     const router = useRouter();
     const [language, setLanguage] = useState('en');
-    const [activeTab, setActiveTab] = useState('Top News');
+    const [selectedTab, setSelectedTab] = useState({ key: 'millat_times', categoryId: null });
     const insets = useSafeAreaInsets();
 
     const {
@@ -22,9 +22,8 @@ function HomeContent() {
         refresh,
         loadMore,
         hasMore
-    } = usePosts(10);
+    } = usePosts(10, selectedTab.categoryId);
 
-    const secondaryIds = ['4', '5', '7']; // We might need to adjust this for dynamic data
 
     const renderFooter = () => {
         if (!loading || refreshing) return null;
@@ -53,50 +52,56 @@ function HomeContent() {
                     onLogoClick={() => router.push('/')}
                 />
                 <SecondaryNavbar
-                    onTabChange={setActiveTab}
+                    onTabChange={setSelectedTab}
                     language={language}
                 />
             </>
-            <FlatList
-                data={posts}
-                renderItem={({ item, index }) => {
-                    // For now, let's make every 4th item a secondary card for variety
-                    if (index % 4 === 1) {
+            {loading && posts.length === 0 ? (
+                <View style={styles.center}>
+                    <ActivityIndicator size="large" color="#008351ff" />
+                </View>
+            ) : (
+                <FlatList
+                    data={posts}
+                    renderItem={({ item, index }) => {
+                        // For now, let's make every 4th item a secondary card for variety
+                        if (index % 4 === 1) {
+                            return (
+                                <NewsCardSecondary
+                                    news={item}
+                                    language={language}
+                                />
+                            );
+                        }
                         return (
-                            <NewsCardSecondary
+                            <NewsCard
                                 news={item}
                                 language={language}
                             />
                         );
-                    }
-                    return (
-                        <NewsCard
-                            news={item}
-                            language={language}
+                    }}
+                    keyExtractor={(item, index) => `${item.id}-${index}`}
+                    scrollEnabled={true}
+                    contentContainerStyle={styles.listContent}
+                    onEndReached={loadMore}
+                    onEndReachedThreshold={0.5}
+                    ListFooterComponent={renderFooter}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={refresh}
+                            colors={["#008351ff"]}
                         />
-                    );
-                }}
-                keyExtractor={(item, index) => `${item.id}-${index}`}
-                scrollEnabled={true}
-                contentContainerStyle={styles.listContent}
-                onEndReached={loadMore}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={renderFooter}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={refresh}
-                        colors={["#008351ff"]}
-                    />
-                }
-                ListEmptyComponent={
-                    !loading && (
-                        <View style={styles.center}>
-                            <Text style={styles.emptyText}>No news found.</Text>
-                        </View>
-                    )
-                }
-            />
+                    }
+                    ListEmptyComponent={
+                        !loading && (
+                            <View style={styles.center}>
+                                <Text style={styles.emptyText}>No news found.</Text>
+                            </View>
+                        )
+                    }
+                />
+            )}
         </View>
     );
 }

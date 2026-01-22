@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
-import { WP_BASE } from '../../constants/config';
+import { fetchPostById } from '../../services/wordpress';
 import { transformPost } from '../../utils/wpTransform';
 
 export default function NewsDetailScreen() {
@@ -21,9 +21,7 @@ export default function NewsDetailScreen() {
         async function fetchArticle() {
             try {
                 setLoading(true);
-                const response = await fetch(`${WP_BASE}/posts/${id}?_embed`);
-                if (!response.ok) throw new Error('Article not found');
-                const data = await response.json();
+                const data = await fetchPostById(id);
                 setArticle(transformPost(data));
             } catch (err) {
                 setError(err.message);

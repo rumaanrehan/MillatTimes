@@ -5,7 +5,7 @@ import { transformPost } from '../utils/wpTransform';
 /**
  * Custom hook to fetch and manage WordPress posts with pagination.
  */
-export function usePosts(perPage = 10) {
+export function usePosts(perPage = 10, categoryId = null) {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -20,7 +20,7 @@ export function usePosts(perPage = 10) {
         setError(null);
 
         try {
-            const rawPosts = await fetchPosts(pageNum, perPage);
+            const rawPosts = await fetchPosts(pageNum, perPage, categoryId);
 
             if (rawPosts.length < perPage) {
                 setHasMore(false);
@@ -44,12 +44,15 @@ export function usePosts(perPage = 10) {
             setLoading(false);
             if (isRefreshing) setRefreshing(false);
         }
-    }, [loading, hasMore, perPage]);
+    }, [loading, hasMore, perPage, categoryId]);
 
-    // Initial load
+    // Initial load and reload on category change
     useEffect(() => {
-        loadPosts(1);
-    }, []);
+        setPosts([]); // Clear posts to show loading state
+        setPage(1);
+        setHasMore(true);
+        loadPosts(1, true);
+    }, [categoryId]);
 
     const refresh = useCallback(() => {
         setRefreshing(true);

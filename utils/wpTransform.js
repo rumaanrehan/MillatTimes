@@ -11,7 +11,7 @@ export function transformPost(wpPost) {
     const embeddedMedia = wpPost._embedded?.['wp:featuredmedia']?.[0];
     const standardImage = embeddedMedia?.source_url;
 
-    // Look through all sizes for a non-avif fallback
+    // 1. Find a non-AVIF fallback in available sizes
     let fallbackImage = null;
     if (embeddedMedia?.media_details?.sizes) {
         const sizes = Object.values(embeddedMedia.media_details.sizes);
@@ -19,9 +19,23 @@ export function transformPost(wpPost) {
         if (nonAvif) fallbackImage = nonAvif.source_url;
     }
 
-    // featuredImage logic: try standard first, then fallback, then avif.
-    const featuredImage = standardImage || fallbackImage || avifImage || 'https://millattimes.com/wp-content/uploads/2021/06/Millat-Times-Logo.jpg';
+    // 2. Select the best image with priority for guid.rendered (JPG) as requested
+    const isAvif = (url) => url?.toLowerCase().endsWith('.avif');
+    const isJpg = (url) => url?.toLowerCase().endsWith('.jpg') || url?.toLowerCase().endsWith('.jpeg');
+    let featuredImage = null;
 
+    // Use requested guid.rendered if it's a JPG
+    const guidImage = wpPost._full_media?.guid?.rendered;
+
+    if (guidImage && isJpg(guidImage)) {
+        featuredImage = guidImage;
+    } else if (standardImage && !isAvif(standardImage)) {
+        featuredImage = standardImage;
+    } else if (fallbackImage) {
+        featuredImage = fallbackImage;
+    } else {
+        featuredImage = guidImage || standardImage || avifImage || 'https://millattimes.com/wp-content/uploads/2021/06/Millat-Times-Logo.jpg';
+    }
     // Get categories
     const categories = wpPost._embedded?.['wp:term']?.[0]?.map(term => term.name) || ['News'];
 

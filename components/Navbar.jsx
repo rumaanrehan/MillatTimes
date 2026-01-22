@@ -1,6 +1,7 @@
+import { Image } from 'expo-image';
 import { useRouter } from "expo-router";
 import { Search } from 'lucide-react-native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import LiveIcon from '../assets/live.png';
 import MillatTimesLogo from '../assets/MillatTimesLogo.avif';
 import { translations } from '../data/news-data';
@@ -22,7 +23,7 @@ export function PrimaryNavbar({ language, onMenuClick, onLogoClick }) {
           <Image
             source={MillatTimesLogo}
             style={styles.logo}
-            resizeMode="contain"
+            contentFit="contain"
           />
         </Pressable>
 
@@ -47,7 +48,7 @@ export function PrimaryNavbar({ language, onMenuClick, onLogoClick }) {
             <Image
               source={LiveIcon}
               style={styles.liveIcon}
-              resizeMode="contain"
+              contentFit="contain"
             />
             <Text style={styles.liveText}>{t.live}</Text>
           </View>
