@@ -3,7 +3,9 @@ import { NotoSans_400Regular, NotoSans_500Medium, NotoSans_600SemiBold, NotoSans
 import { NotoSerif_400Regular, NotoSerif_500Medium, NotoSerif_600SemiBold, NotoSerif_700Bold } from '@expo-google-fonts/noto-serif';
 import { Stack } from "expo-router";
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -35,6 +37,11 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerTitleAlign: "center" }} />
+    <SafeAreaProvider>
+      <StatusBar style="dark" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </SafeAreaProvider>
   );
 }

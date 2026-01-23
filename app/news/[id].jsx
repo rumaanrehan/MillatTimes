@@ -1,27 +1,59 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
-import { newsData } from '../../data/news-data';
+import { fetchPostById } from '../../services/wordpress';
+import { transformPost } from '../../utils/wpTransform';
 
 export default function NewsDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const [isBookmarked, setIsBookmarked] = useState(false);
+    const insets = useSafeAreaInsets();
+    const [article, setArticle] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Find the news article by id
-    const article = newsData.find(item => item.id === id);
+    useEffect(() => {
+        async function fetchArticle() {
+            try {
+                setLoading(true);
+                const data = await fetchPostById(id);
+                setArticle(transformPost(data));
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+        if (id) fetchArticle();
+    }, [id]);
 
-    // Get related news (same category, excluding current article)
-    const relatedNews = newsData
-        .filter(item => item.category === article?.category && item.id !== id)
-        .slice(0, 3);
+    const handleBookmarkPress = () => {
+        setIsBookmarked(!isBookmarked);
+    }
 
-    if (!article) {
+    const handleSharePress = async () => {
+        if (article?.link) {
+            Linking.openURL(article.link);
+        }
+    };
+
+    if (loading) {
         return (
-            <View style={styles.errorContainer}>
-                <AppText size={18} weight="600">Article not found</AppText>
+            <View style={[styles.center, { paddingTop: insets.top }]}>
+                <ActivityIndicator size="large" color="#008351ff" />
+            </View>
+        );
+    }
+
+    if (error || !article) {
+        return (
+            <View style={[styles.errorContainer, { paddingTop: insets.top }]}>
+                <AppText size={18} weight="600">{error || 'Article not found'}</AppText>
                 <Pressable onPress={() => router.back()} style={styles.backButton}>
                     <AppText size={16} weight="500" style={styles.backButtonText}>Go Back</AppText>
                 </Pressable>
@@ -29,11 +61,11 @@ export default function NewsDetailScreen() {
         );
     }
 
-    const handleBookmarkPress = () => {
-        setIsBookmarked(!isBookmarked);
-    }
+    // Simple HTML tag stripping for content until a proper renderer is added
+    const cleanContent = article.content.replace(/<[^>]*>?/gm, '\n').replace(/\n\s*\n/g, '\n\n').trim();
+
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             {/* Header with back button */}
             <View style={styles.header}>
                 <Pressable onPress={() => router.back()} style={styles.headerButton}>
@@ -47,7 +79,7 @@ export default function NewsDetailScreen() {
                             color={isBookmarked ? "#ffd500" : "#0a0a0a"}
                         />
                     </Pressable>
-                    <Pressable style={styles.headerButton}>
+                    <Pressable style={styles.headerButton} onPress={handleSharePress}>
                         <Ionicons name="share-social-outline" size={24} color="#0a0a0a" />
                     </Pressable>
                 </View>
@@ -68,7 +100,7 @@ export default function NewsDetailScreen() {
 
                 {/* Meta Info */}
                 <View style={styles.metaContainer}>
-                    <Text style={styles.metaText}>{article.source}</Text>
+                    <Text style={styles.metaText}>Millat Times</Text>
                     <View style={styles.metaDot} />
                     <Text style={styles.metaText}>{article.time}</Text>
                 </View>
@@ -76,26 +108,15 @@ export default function NewsDetailScreen() {
                 {/* Featured Image */}
                 <View style={styles.imageContainer}>
                     <Image
-                        source={{ uri: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80' }}
+                        source={{ uri: article.image }}
                         style={styles.image}
-                        resizeMode="cover"
+                        contentFit="cover"
+                        transition={300}
                     />
                 </View>
 
-                {/* Description */}
-                <Text style={styles.description}>{article.description}</Text>
-
                 {/* Main Content */}
-                <Text style={styles.content}>{article.content}</Text>
-
-                {/* Additional Content Paragraphs (simulated) */}
-                <Text style={styles.content}>
-                    This development has significant implications for the industry and beyond. Experts suggest that the impact will be felt across multiple sectors, potentially reshaping how we approach similar challenges in the future.
-                </Text>
-
-                <Text style={styles.content}>
-                    Stakeholders from various fields have expressed both enthusiasm and caution regarding these developments. While the potential benefits are substantial, there are also important considerations regarding implementation and long-term effects that need to be carefully evaluated.
-                </Text>
+                <Text style={styles.content}>{cleanContent}</Text>
 
                 {/* Action Buttons */}
                 <View style={styles.actionContainer}>
@@ -111,39 +132,11 @@ export default function NewsDetailScreen() {
                         />
                         <Text style={styles.actionButtonText}>Save</Text>
                     </Pressable>
-                    <Pressable style={styles.actionButton}>
+                    <Pressable style={styles.actionButton} onPress={handleSharePress}>
                         <Ionicons name="share-social-outline" size={22} color="#4b5563" />
                         <Text style={styles.actionButtonText}>Share</Text>
                     </Pressable>
                 </View>
-
-                {/* Related News Section */}
-                {relatedNews.length > 0 && (
-                    <View style={styles.relatedSection}>
-                        <Text style={styles.relatedTitle}>Related News</Text>
-                        {relatedNews.map((item) => (
-                            <Pressable
-                                key={item.id}
-                                style={styles.relatedCard}
-                                onPress={() => router.push(`/news/${item.id}`)}
-                            >
-                                <View style={styles.relatedImageContainer}>
-                                    <Image
-                                        source={{ uri: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&q=80' }}
-                                        style={styles.relatedImage}
-                                    />
-                                </View>
-                                <View style={styles.relatedContent}>
-                                    <Text style={styles.relatedCategory}>{item.category}</Text>
-                                    <Text style={styles.relatedHeadline} numberOfLines={2}>
-                                        {item.headline}
-                                    </Text>
-                                    <Text style={styles.relatedTime}>{item.time}</Text>
-                                </View>
-                            </Pressable>
-                        ))}
-                    </View>
-                )}
             </ScrollView>
         </View>
     );
@@ -153,6 +146,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#ffffff',
+    },
+    center: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     errorContainer: {
         flex: 1,
@@ -164,7 +162,7 @@ const styles = StyleSheet.create({
     backButton: {
         paddingHorizontal: 24,
         paddingVertical: 12,
-        backgroundColor: '#d60f0f',
+        backgroundColor: '#008351ff',
         borderRadius: 8,
     },
     backButtonText: {
@@ -196,7 +194,7 @@ const styles = StyleSheet.create({
     },
     categoryBadge: {
         alignSelf: 'flex-start',
-        backgroundColor: '#fef2f2',
+        backgroundColor: '#eaf9f3ff',
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 6,
@@ -206,14 +204,14 @@ const styles = StyleSheet.create({
     categoryText: {
         fontSize: 12,
         fontFamily: 'NotoSans_600SemiBold',
-        color: '#d60f0f',
+        color: '#008351ff',
         textTransform: 'uppercase',
     },
     headline: {
-        fontSize: 28,
+        fontSize: 24,
         fontFamily: 'NotoSans_700Bold',
         color: '#0a0a0a',
-        lineHeight: 36,
+        lineHeight: 32,
         marginHorizontal: 16,
         marginTop: 16,
     },
@@ -245,21 +243,13 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
     },
-    description: {
+    content: {
         fontSize: 18,
-        fontFamily: 'NotoSerif_500Medium',
+        fontFamily: 'NotoSerif_400Regular',
         color: '#374151',
         lineHeight: 28,
         marginHorizontal: 16,
-        marginTop: 20,
-    },
-    content: {
-        fontSize: 16,
-        fontFamily: 'NotoSerif_400Regular',
-        color: '#4b5563',
-        lineHeight: 26,
-        marginHorizontal: 16,
-        marginTop: 16,
+        marginTop: 24,
     },
     actionContainer: {
         flexDirection: 'row',
@@ -281,56 +271,5 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontFamily: 'NotoSans_500Medium',
         color: '#4b5563',
-    },
-    relatedSection: {
-        marginTop: 40,
-        paddingTop: 24,
-        borderTopWidth: 8,
-        borderTopColor: '#f3f4f6',
-    },
-    relatedTitle: {
-        fontSize: 22,
-        fontFamily: 'NotoSans_700Bold',
-        color: '#0a0a0a',
-        marginHorizontal: 16,
-        marginBottom: 16,
-    },
-    relatedCard: {
-        flexDirection: 'row',
-        marginHorizontal: 16,
-        marginBottom: 16,
-        gap: 12,
-    },
-    relatedImageContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 8,
-        overflow: 'hidden',
-        backgroundColor: '#e5e7eb',
-    },
-    relatedImage: {
-        width: '100%',
-        height: '100%',
-    },
-    relatedContent: {
-        flex: 1,
-        justifyContent: 'space-between',
-    },
-    relatedCategory: {
-        fontSize: 11,
-        fontFamily: 'NotoSans_600SemiBold',
-        color: '#9ca3af',
-        textTransform: 'uppercase',
-    },
-    relatedHeadline: {
-        fontSize: 15,
-        fontFamily: 'NotoSans_600SemiBold',
-        color: '#0a0a0a',
-        lineHeight: 20,
-    },
-    relatedTime: {
-        fontSize: 12,
-        fontFamily: 'NotoSerif_400Regular',
-        color: '#9ca3af',
     },
 });
