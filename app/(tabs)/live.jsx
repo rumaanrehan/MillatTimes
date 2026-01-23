@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 export default function LiveScreen() {
     return (
         <View style={styles.container}>
-            <Text style={styles.text}>Live Screen Coming Soon</Text>
+            <Text style={styles.text}>Currently No Live Stream Going On</Text>
         </View>
     );
 }

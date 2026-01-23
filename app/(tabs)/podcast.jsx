@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppText from "../../components/AppText";
@@ -46,70 +46,85 @@ function buildOEmbedUrlFromYouTubeUrl(youtubeUrl) {
   return `https://www.youtube.com/oembed?url=${encodeURIComponent(cleanWatchUrl)}&format=json`;
 }
 
+const YOUTUBE_URLS = [
+  "https://youtu.be/WmvZ8ShlAXc?si=ZPTZhxKbhS2Dvz2b",
+  "https://youtu.be/_qKh1ye3kRw?si=djIWv3LSYvCgM0qh"
+];
+
 export default function PodcastScreen() {
   const insets = useSafeAreaInsets();
   const [language] = useState('en');
-  const youtubeUrl =
-    "https://www.youtube.com/watch?v=_qKh1ye3kRw&pp=ygUUbWlsbGF0IHRpbWVzIHBvZGNhc3Q%3D";
+  const youtubeUrls = YOUTUBE_URLS;
 
-  const oEmbedUrl = useMemo(() => buildOEmbedUrlFromYouTubeUrl(youtubeUrl), [youtubeUrl]);
-
-  const [data, setData] = useState(null);
-  const [err, setErr] = useState(null);
+  const [podcasts, setPodcasts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState({});
 
-  const loadPodcast = async () => {
+  const loadPodcast = async (url, index) => {
     try {
-      setLoading(true);
-      setErr(null);
-
-      if (!oEmbedUrl) throw new Error("Invalid YouTube URL (could not find video id).");
+      const oEmbedUrl = buildOEmbedUrlFromYouTubeUrl(url);
+      if (!oEmbedUrl) {
+        throw new Error("Invalid YouTube URL (could not find video id).");
+      }
 
       const res = await fetch(oEmbedUrl);
       if (!res.ok) throw new Error(`oEmbed failed: HTTP ${res.status}`);
       const json = await res.json();
 
-      // json contains: title, thumbnail_url, author_name, provider_name, ...
-      setData(json);
+      return { url, data: json, index };
     } catch (e) {
-      setErr(String(e?.message ?? e));
-    } finally {
-      setLoading(false);
+      return { url, data: null, index, error: String(e?.message ?? e) };
     }
   };
 
   useEffect(() => {
     let mounted = true;
 
-    async function load() {
+    async function loadAll() {
       try {
         setLoading(true);
-        setErr(null);
+        setErrors({});
 
-        if (!oEmbedUrl) throw new Error("Invalid YouTube URL (could not find video id).");
+        const promises = youtubeUrls.map((url, index) => loadPodcast(url, index));
+        const results = await Promise.all(promises);
 
-        const res = await fetch(oEmbedUrl);
-        if (!res.ok) throw new Error(`oEmbed failed: HTTP ${res.status}`);
-        const json = await res.json();
+        if (!mounted) return;
 
-        // json contains: title, thumbnail_url, author_name, provider_name, ...
-        if (mounted) setData(json);
+        const loadedPodcasts = [];
+        const newErrors = {};
+
+        results.forEach((result) => {
+          if (result.error) {
+            newErrors[result.index] = result.error;
+          } else if (result.data) {
+            loadedPodcasts.push({
+              url: result.url,
+              ...result.data,
+            });
+          }
+        });
+
+        setPodcasts(loadedPodcasts);
+        setErrors(newErrors);
       } catch (e) {
-        if (mounted) setErr(String(e?.message ?? e));
+        if (mounted) {
+          setErrors({ general: String(e?.message ?? e) });
+        }
       } finally {
         if (mounted) setLoading(false);
       }
     }
 
-    load();
+    loadAll();
     return () => {
       mounted = false;
     };
-  }, [oEmbedUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const onPress = async () => {
-    const supported = await Linking.canOpenURL(youtubeUrl);
-    if (supported) Linking.openURL(youtubeUrl);
+  const handlePress = async (url) => {
+    const supported = await Linking.canOpenURL(url);
+    if (supported) Linking.openURL(url);
   };
 
   return (
@@ -136,73 +151,51 @@ export default function PodcastScreen() {
           <View style={styles.centerContainer}>
             <ActivityIndicator size="large" color="#008351ff" />
             <AppText size={16} weight="500" style={styles.loadingText}>
-              Loading podcast...
+              Loading podcasts...
             </AppText>
           </View>
-        ) : err ? (
+        ) : podcasts.length === 0 && Object.keys(errors).length > 0 ? (
           <View style={styles.errorContainer}>
             <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
             <AppText size={18} weight="600" style={styles.errorText}>
-              {err}
+              {errors.general || "Failed to load podcasts"}
             </AppText>
-            <Pressable onPress={loadPodcast} style={styles.retryButton}>
-              <AppText size={16} weight="600" style={styles.retryButtonText}>
-                Retry
-              </AppText>
-            </Pressable>
           </View>
         ) : (
-          <Pressable 
-            onPress={onPress} 
-            style={styles.podcastCard}
-            android_ripple={{ color: '#e5e7eb' }}
-          >
-            <View style={styles.thumbnailContainer}>
-              <ExpoImage
-                source={{ uri: data?.thumbnail_url }}
-                style={styles.thumbnail}
-                contentFit="cover"
-                transition={200}
-              />
-              <View style={styles.overlay}>
-                <View style={styles.playButton}>
-                  <Ionicons name="play" size={32} color="#ffffff" />
+          <>
+            {podcasts.map((podcast, index) => (
+              <Pressable 
+                key={index}
+                onPress={() => handlePress(podcast.url)} 
+                style={[styles.podcastCard, index > 0 && styles.podcastCardSpacing]}
+                android_ripple={{ color: '#e5e7eb' }}
+              >
+                <View style={styles.thumbnailContainer}>
+                  <ExpoImage
+                    source={{ uri: podcast.thumbnail_url }}
+                    style={styles.thumbnail}
+                    contentFit="cover"
+                    transition={200}
+                  />
+                  <View style={styles.overlay}>
+                    <View style={styles.playButton}>
+                      <Ionicons name="play" size={32} color="#ffffff" />
+                    </View>
+                  </View>
+                  <View style={styles.durationBadge}>
+                    <Ionicons name="time-outline" size={14} color="#ffffff" />
+                    <Text style={styles.durationText}>Watch Now</Text>
+                  </View>
                 </View>
-              </View>
-              <View style={styles.durationBadge}>
-                <Ionicons name="time-outline" size={14} color="#ffffff" />
-                <Text style={styles.durationText}>Watch Now</Text>
-              </View>
-            </View>
-            
-            <View style={styles.cardContent}>
-              <AppText size={20} weight="700" style={styles.podcastTitle} numberOfLines={2}>
-                {data?.title}
-              </AppText>
-              
-              {/* <View style={styles.metaContainer}>
-                <View style={styles.metaItem}>
-                  <Ionicons name="person-outline" size={16} color="#6b7280" />
-                  <AppText size={14} weight="500" style={styles.metaText}>
-                    {data?.author_name || 'Millat Times'}
+                
+                <View style={styles.cardContent}>
+                  <AppText size={20} weight="700" style={styles.podcastTitle} numberOfLines={2}>
+                    {podcast.title}
                   </AppText>
                 </View>
-                <View style={styles.metaItem}>
-                  <Ionicons name="logo-youtube" size={16} color="#ef4444" />
-                  <AppText size={14} weight="500" style={styles.metaText}>
-                    {data?.provider_name || 'YouTube'}
-                  </AppText>
-                </View>
-              </View> */}
-
-              {/* <View style={styles.actionButton}>
-                <Ionicons name="play-circle" size={20} color="#ffffff" />
-                <AppText size={16} weight="600" style={styles.actionButtonText}>
-                  Play Episode
-                </AppText>
-              </View> */}
-            </View>
-          </Pressable>
+              </Pressable>
+            ))}
+          </>
         )}
 
         {/* Additional space for future episodes */}
@@ -281,6 +274,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+  podcastCardSpacing: {
+    marginTop: 16,
   },
   thumbnailContainer: {
     position: 'relative',

@@ -12,8 +12,10 @@ import {
     Users,
     Youtube
 } from 'lucide-react-native';
+import { useState } from 'react';
 import {
     Linking,
+    Modal,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -57,11 +59,18 @@ const PROFILE_OPTIONS = [
 
 export default function ProfileScreen() {
     const insets = useSafeAreaInsets();
+    const [showPremiumModal, setShowPremiumModal] = useState(false);
 
     const handlePress = (item) => {
-        if (item.url) {
+        if (item.premium) {
+            setShowPremiumModal(true);
+        } else if (item.url) {
             Linking.openURL(item.url);
         }
+    };
+
+    const handlePremiumBannerPress = () => {
+        setShowPremiumModal(true);
     };
 
     return (
@@ -81,7 +90,7 @@ export default function ProfileScreen() {
             </View>
 
             {/* Premium Banner */}
-            <View style={styles.premiumBanner}>
+            <Pressable onPress={handlePremiumBannerPress} style={styles.premiumBanner}>
                 <View style={styles.premiumInfo}>
                     <Crown size={24} color="#ffffff" />
                     <View style={styles.premiumTextContainer}>
@@ -90,7 +99,36 @@ export default function ProfileScreen() {
                     </View>
                 </View>
                 <ChevronRight size={20} color="#ffffff" />
-            </View>
+            </Pressable>
+
+            {/* Premium Coming Soon Modal */}
+            <Modal
+                visible={showPremiumModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowPremiumModal(false)}
+            >
+                <Pressable 
+                    style={styles.modalOverlay}
+                    onPress={() => setShowPremiumModal(false)}
+                >
+                    <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+                        <View style={styles.modalIconContainer}>
+                            <Crown size={48} color="#ca8a04" />
+                        </View>
+                        <Text style={styles.modalTitle}>Premium Coming Soon</Text>
+                        <Text style={styles.modalMessage}>
+                            We're working on bringing you an amazing premium experience with ad-free content and exclusive features. Stay tuned!
+                        </Text>
+                        <Pressable 
+                            style={styles.modalButton}
+                            onPress={() => setShowPremiumModal(false)}
+                        >
+                            <Text style={styles.modalButtonText}>Got it</Text>
+                        </Pressable>
+                    </Pressable>
+                </Pressable>
+            </Modal>
 
             {/* Options List */}
             {PROFILE_OPTIONS.map((section, idx) => (
@@ -266,5 +304,64 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#9ca3af',
         fontFamily: 'NotoSans_400Regular',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: '#ffffff',
+        borderRadius: 20,
+        padding: 24,
+        width: '100%',
+        maxWidth: 400,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+        elevation: 8,
+    },
+    modalIconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#fef9c3',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: '#1f2937',
+        fontFamily: 'NotoSans_700Bold',
+        marginBottom: 12,
+        textAlign: 'center',
+    },
+    modalMessage: {
+        fontSize: 16,
+        color: '#6b7280',
+        fontFamily: 'NotoSans_400Regular',
+        textAlign: 'center',
+        lineHeight: 24,
+        marginBottom: 24,
+    },
+    modalButton: {
+        backgroundColor: '#008351ff',
+        paddingHorizontal: 32,
+        paddingVertical: 14,
+        borderRadius: 12,
+        width: '100%',
+        alignItems: 'center',
+    },
+    modalButtonText: {
+        color: '#ffffff',
+        fontSize: 16,
+        fontWeight: '600',
+        fontFamily: 'NotoSans_600SemiBold',
     },
 });

@@ -31,6 +31,6 @@ export function resolveCategoryIds(categories, slugs) {
             mapping[slug] = category.id;
         }
     });
-    console.log(mapping)
+   
     return mapping;
 }
