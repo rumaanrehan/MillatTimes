@@ -2,17 +2,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppText from '../../components/AppText';
+import { useBookmarks } from '../../context/BookmarkContext';
+import { useDownloads } from '../../context/DownloadContext';
 import { fetchPostById } from '../../services/wordpress';
 import { transformPost } from '../../utils/wpTransform';
 
 export default function NewsDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
-    const [isBookmarked, setIsBookmarked] = useState(false);
+    const { isBookmarked, toggleBookmark } = useBookmarks();
+    const { articleDownloaded, toggleDownload, downloads } = useDownloads();
+    const bookmarked = isBookmarked(id);
+    const downloaded = articleDownloaded(id);
     const insets = useSafeAreaInsets();
+
     const [article, setArticle] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -21,6 +27,16 @@ export default function NewsDetailScreen() {
         async function fetchArticle() {
             try {
                 setLoading(true);
+
+                // 1. Check if article is already in downloads for offline reading
+                const downloadedArticle = downloads.find(item => item.id === id);
+                if (downloadedArticle) {
+                    setArticle(downloadedArticle);
+                    setLoading(false);
+                    return;
+                }
+
+                // 2. Otherwise fetch from network
                 const data = await fetchPostById(id);
                 setArticle(transformPost(data));
             } catch (err) {
@@ -30,15 +46,21 @@ export default function NewsDetailScreen() {
             }
         }
         if (id) fetchArticle();
-    }, [id]);
+    }, [id, downloads]);
 
     const handleBookmarkPress = () => {
-        setIsBookmarked(!isBookmarked);
-    }
+        if (article) toggleBookmark(article);
+    };
+
+    const handleDownloadPress = () => {
+        if (article) toggleDownload(article);
+    };
 
     const handleSharePress = async () => {
         if (article?.link) {
-            Linking.openURL(article.link);
+            Share.share({
+                message: `${article.headline} ${article.link}`,
+            });
         }
     };
 
@@ -61,22 +83,29 @@ export default function NewsDetailScreen() {
         );
     }
 
-    // Simple HTML tag stripping for content until a proper renderer is added
+    // Simple HTML tag stripping for content
     const cleanContent = article.content.replace(/<[^>]*>?/gm, '\n').replace(/\n\s*\n/g, '\n\n').trim();
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
-            {/* Header with back button */}
+            {/* Header with action buttons */}
             <View style={styles.header}>
                 <Pressable onPress={() => router.back()} style={styles.headerButton}>
                     <Ionicons name="arrow-back" size={24} color="#0a0a0a" />
                 </Pressable>
                 <View style={styles.headerActions}>
+                    <Pressable style={styles.headerButton} onPress={handleDownloadPress}>
+                        <Ionicons
+                            name={downloaded ? "download" : "download-outline"}
+                            size={24}
+                            color={downloaded ? "#008351ff" : "#0a0a0a"}
+                        />
+                    </Pressable>
                     <Pressable style={styles.headerButton} onPress={handleBookmarkPress}>
                         <Ionicons
-                            name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                            name={bookmarked ? "bookmark" : "bookmark-outline"}
                             size={24}
-                            color={isBookmarked ? "#ffd500" : "#0a0a0a"}
+                            color={bookmarked ? "#ffd500" : "#0a0a0a"}
                         />
                     </Pressable>
                     <Pressable style={styles.headerButton} onPress={handleSharePress}>
@@ -120,17 +149,23 @@ export default function NewsDetailScreen() {
 
                 {/* Action Buttons */}
                 <View style={styles.actionContainer}>
-                    <Pressable style={styles.actionButton}>
-                        <Ionicons name="chatbox-outline" size={22} color="#4b5563" />
-                        <Text style={styles.actionButtonText}>Comment</Text>
+                    <Pressable style={styles.actionButton} onPress={handleDownloadPress}>
+                        <Ionicons
+                            name={downloaded ? "download" : "download-outline"}
+                            size={22}
+                            color={downloaded ? "#008351ff" : "#4b5563"}
+                        />
+                        <Text style={[styles.actionButtonText, downloaded && { color: '#008351ff' }]}>
+                            {downloaded ? "Saved" : "Download"}
+                        </Text>
                     </Pressable>
                     <Pressable style={styles.actionButton} onPress={handleBookmarkPress}>
                         <Ionicons
-                            name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                            name={bookmarked ? "bookmark" : "bookmark-outline"}
                             size={22}
-                            color={isBookmarked ? "#ffd500" : "#0a0a0a"}
+                            color={bookmarked ? "#ffd500" : "#4b5563"}
                         />
-                        <Text style={styles.actionButtonText}>Save</Text>
+                        <Text style={[styles.actionButtonText, bookmarked && { color: '#ffd500' }]}>Save</Text>
                     </Pressable>
                     <Pressable style={styles.actionButton} onPress={handleSharePress}>
                         <Ionicons name="share-social-outline" size={22} color="#4b5563" />

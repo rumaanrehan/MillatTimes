@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import YoutubePlayer from "react-native-youtube-iframe";
 import AppText from "../../components/AppText";
 import { PrimaryNavbar } from "../../components/Navbar";
 
@@ -59,6 +60,7 @@ export default function PodcastScreen() {
   const [podcasts, setPodcasts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
+  const [playingVideoId, setPlayingVideoId] = useState(null);
 
   const loadPodcast = async (url, index) => {
     try {
@@ -99,6 +101,7 @@ export default function PodcastScreen() {
           } else if (result.data) {
             loadedPodcasts.push({
               url: result.url,
+              videoId: getYouTubeVideoId(result.url),
               ...result.data,
             });
           }
@@ -122,20 +125,19 @@ export default function PodcastScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handlePress = async (url) => {
-    const supported = await Linking.canOpenURL(url);
-    if (supported) Linking.openURL(url);
+  const handleVideoPress = (videoId) => {
+    setPlayingVideoId(videoId);
   };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <PrimaryNavbar
         language={language}
-        onMenuClick={() => {}}
-        onLogoClick={() => {}}
+        onMenuClick={() => { }}
+        onLogoClick={() => { }}
       />
-      
-      <ScrollView 
+
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -164,36 +166,49 @@ export default function PodcastScreen() {
         ) : (
           <>
             {podcasts.map((podcast, index) => (
-              <Pressable 
+              <View
                 key={index}
-                onPress={() => handlePress(podcast.url)} 
                 style={[styles.podcastCard, index > 0 && styles.podcastCardSpacing]}
-                android_ripple={{ color: '#e5e7eb' }}
               >
                 <View style={styles.thumbnailContainer}>
-                  <ExpoImage
-                    source={{ uri: podcast.thumbnail_url }}
-                    style={styles.thumbnail}
-                    contentFit="cover"
-                    transition={200}
-                  />
-                  <View style={styles.overlay}>
-                    <View style={styles.playButton}>
-                      <Ionicons name="play" size={32} color="#ffffff" />
+                  {playingVideoId === podcast.videoId ? (
+                    <YoutubePlayer
+                      height={220}
+                      play={true}
+                      videoId={podcast.videoId}
+                    />
+                  ) : (
+                    <Pressable
+                      onPress={() => handleVideoPress(podcast.videoId)}
+                      style={{ flex: 1 }}
+                    >
+                      <ExpoImage
+                        source={{ uri: podcast.thumbnail_url }}
+                        style={styles.thumbnail}
+                        contentFit="cover"
+                        transition={200}
+                      />
+                      <View style={styles.overlay}>
+                        <View style={styles.playButton}>
+                          <Ionicons name="play" size={32} color="#ffffff" />
+                        </View>
+                      </View>
+                    </Pressable>
+                  )}
+                  {playingVideoId !== podcast.videoId && (
+                    <View style={styles.durationBadge}>
+                      <Ionicons name="time-outline" size={14} color="#ffffff" />
+                      <Text style={styles.durationText}>Watch Now</Text>
                     </View>
-                  </View>
-                  <View style={styles.durationBadge}>
-                    <Ionicons name="time-outline" size={14} color="#ffffff" />
-                    <Text style={styles.durationText}>Watch Now</Text>
-                  </View>
+                  )}
                 </View>
-                
+
                 <View style={styles.cardContent}>
                   <AppText size={20} weight="700" style={styles.podcastTitle} numberOfLines={2}>
                     {podcast.title}
                   </AppText>
                 </View>
-              </Pressable>
+              </View>
             ))}
           </>
         )}

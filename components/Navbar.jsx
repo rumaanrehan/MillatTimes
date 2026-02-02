@@ -1,8 +1,7 @@
 import { Image } from 'expo-image';
 import { useRouter } from "expo-router";
 import { Search } from 'lucide-react-native';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import LiveIcon from '../assets/live.png';
+import { Pressable, StyleSheet, View } from 'react-native';
 import MillatTimesLogo from '../assets/MillatTimesLogo.avif';
 import { translations } from '../data/news-data';
 
@@ -44,14 +43,17 @@ export function PrimaryNavbar({ language, onMenuClick, onLogoClick }) {
             <Search size={27} style={styles.searchIcon} />
           </Pressable>
 
-          <View style={styles.liveButton}>
+          {/* <Pressable
+            onPress={() => router.push('/live')}
+            style={styles.liveButton}
+          >
             <Image
               source={LiveIcon}
               style={styles.liveIcon}
               contentFit="contain"
             />
             <Text style={styles.liveText}>{t.live}</Text>
-          </View>
+          </Pressable> */}
         </View>
       </View>
     </View>
@@ -98,7 +100,7 @@ function getStyles(isRTL) {
     },
     searchIcon: {
       color: '#808080',
-
+      marginHorizontal: 5
     },
     liveButton: {
       flexDirection: 'column',
@@ -108,13 +110,13 @@ function getStyles(isRTL) {
       paddingVertical: 0,
     },
     liveIcon: {
-      width: 25,
-      height: 25,
+      width: 20,
+      height: 20,
       transform: [{ translateY: 2 }],
     },
     liveText: {
       color: '#ef4444',
-      fontSize: 10,
+      fontSize: 8,
       fontFamily: 'LibreBodoni_500Medium',
       transform: [{ translateY: -2 }],
     },

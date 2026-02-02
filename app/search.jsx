@@ -1,6 +1,8 @@
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
+    ActivityIndicator,
+    FlatList,
     Keyboard,
     Pressable,
     StyleSheet,
@@ -8,40 +10,78 @@ import {
     View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { NewsCard } from "../components/NewsCard";
 import { SearchBar } from "../components/SearchBar";
-
-const POPULAR_SEARCHES = [
-    "Sensex",
-    "Tamil Nadu",
-    "T20 World Cup",
-    "Donald Trump",
-    "Nitin Nabin",
-    "Stray Dogs",
-    "PM Modi",
-    "Davos 2026",
-    "Play Time!",
-];
+import { getPopularKeywords } from "../services/keywordService";
+import { searchPosts } from "../services/wordpress";
+import { transformPost } from "../utils/wpTransform";
 
 export default function SearchScreen() {
     const router = useRouter();
+    const params = useLocalSearchParams();
     const insets = useSafeAreaInsets();
     const [query, setQuery] = useState("");
     const [submittedQuery, setSubmittedQuery] = useState("");
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [suggestions, setSuggestions] = useState([]);
+    const [loadingSuggestions, setLoadingSuggestions] = useState(true);
+    const [error, setError] = useState(null);
 
-    const handleSearch = (q) => {
+    // Fetch dynamic popular searches
+    useEffect(() => {
+        async function fetchPopular() {
+            try {
+                const keywords = await getPopularKeywords();
+                if (keywords.length > 0) {
+                    setSuggestions(keywords);
+                }
+            } catch (err) {
+                console.error("Failed to load popular searches:", err);
+            } finally {
+                setLoadingSuggestions(false);
+            }
+        }
+        fetchPopular();
+    }, []);
+
+    // Handle initial search from URL params (e.g. ?s=bareilly)
+    useEffect(() => {
+        if (params.s) {
+            const initialQuery = params.s;
+            setQuery(initialQuery);
+            handleSearch(initialQuery);
+        }
+    }, [params.s]);
+
+    const handleSearch = async (q) => {
         const cleaned = q.trim();
         if (cleaned) {
             setSubmittedQuery(cleaned);
             setQuery(cleaned);
             Keyboard.dismiss();
-            console.log("Searching for:", cleaned);
-            // Here you would typically integrate with your news search service
+            setLoading(true);
+            setError(null);
+            setResults([]);
+
+            try {
+                const rawPosts = await searchPosts(cleaned);
+                const transformed = rawPosts.map(transformPost);
+                setResults(transformed);
+            } catch (err) {
+                console.error("Search failed:", err);
+                setError("Failed to fetch search results. Please try again.");
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
     const handleClear = () => {
         setQuery("");
         setSubmittedQuery("");
+        setResults([]);
+        setError(null);
     };
 
     const isEmpty = submittedQuery.trim().length === 0;
@@ -60,20 +100,46 @@ export default function SearchScreen() {
 
             {/* Content Area */}
             {isEmpty ? (
-                <Suggestions
-                    data={POPULAR_SEARCHES}
-                    onPressChip={handleSearch}
-                />
+                loadingSuggestions ? (
+                    <View style={styles.center}>
+                        <ActivityIndicator color="#008351ff" />
+                    </View>
+                ) : (
+                    <Suggestions
+                        data={suggestions}
+                        onPressChip={handleSearch}
+                    />
+                )
             ) : (
                 <View style={styles.resultsContainer}>
                     <View style={styles.resultsHeader}>
                         <Text style={styles.resultsTitle}>Results for &quot;{submittedQuery}&quot;</Text>
-                        <Pressable onPress={() => setSubmittedQuery("")}>
+                        <Pressable onPress={handleClear}>
                             <Text style={styles.clearResultsText}>Clear</Text>
                         </Pressable>
                     </View>
-                    {/* Results list would go here */}
-                    <Text style={styles.placeholderText}>Search results coming soon...</Text>
+
+                    {loading ? (
+                        <View style={styles.center}>
+                            <ActivityIndicator size="large" color="#008351ff" />
+                        </View>
+                    ) : error ? (
+                        <View style={styles.center}>
+                            <Text style={styles.errorText}>{error}</Text>
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={results}
+                            keyExtractor={(item) => item.id.toString()}
+                            renderItem={({ item }) => (
+                                <NewsCard news={item} language="en" />
+                            )}
+                            ListEmptyComponent={
+                                <Text style={styles.placeholderText}>No results found.</Text>
+                            }
+                            contentContainerStyle={{ paddingBottom: 20 }}
+                        />
+                    )}
                 </View>
             )}
         </View>
@@ -156,5 +222,15 @@ const styles = StyleSheet.create({
         marginTop: 40,
         color: '#9ca3af',
         fontFamily: 'NotoSans_400Regular',
+    },
+    center: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 16,
+        fontFamily: 'NotoSans_500Medium',
     }
 });
