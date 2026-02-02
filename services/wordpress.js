@@ -85,3 +85,21 @@ export async function fetchPostById(id) {
         throw error;
     }
 }
+
+/**
+ * Searches for posts by query string.
+ * @param {string} query - The search query.
+ * @returns {Promise<Array>} - The array of matching posts.
+ */
+export async function searchPosts(query) {
+    try {
+        const url = `${WP_BASE}/posts?search=${encodeURIComponent(query)}&_embed=1`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Search failed');
+        const posts = await res.json();
+        return posts;
+    } catch (error) {
+        console.error('Search API Error:', error);
+        throw error;
+    }
+}

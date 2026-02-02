@@ -1,11 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { useBookmarks } from '../context/BookmarkContext';
+import { useDownloads } from '../context/DownloadContext';
+
 export function NewsCard({ news, language }) {
   const router = useRouter();
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const { articleDownloaded, toggleDownload } = useDownloads();
+  const bookmarked = isBookmarked(news.id);
+  const downloaded = articleDownloaded(news.id);
   const isRTL = language === 'ur';
   const styles = getStyles(isRTL);
 
@@ -14,12 +19,16 @@ export function NewsCard({ news, language }) {
   };
 
   const handleBookmarkPress = () => {
-    setIsBookmarked(!isBookmarked);
+    toggleBookmark(news);
+  };
+
+  const handleDownloadPress = () => {
+    toggleDownload(news);
   };
 
   const handleSharePress = () => {
     Share.share({
-      message: news.headline,
+      message: `${news.headline} ${news.link}`,
     });
   };
   return (
@@ -55,9 +64,16 @@ export function NewsCard({ news, language }) {
           </Pressable> */}
           <Pressable style={styles.actionButton} onPress={handleBookmarkPress}>
             <Ionicons
-              name={isBookmarked ? "bookmark" : "bookmark-outline"}
+              name={bookmarked ? "bookmark" : "bookmark-outline"}
               size={20}
-              color={isBookmarked ? "#ffd500ff" : "#4b5563"}
+              color={bookmarked ? "#ffd500ff" : "#4b5563"}
+            />
+          </Pressable>
+          <Pressable style={styles.actionButton} onPress={handleDownloadPress}>
+            <Ionicons
+              name={downloaded ? "download" : "download-outline"}
+              size={20}
+              color={downloaded ? "#008351ff" : "#4b5563"}
             />
           </Pressable>
           <Pressable style={styles.actionButton} onPress={handleSharePress}>

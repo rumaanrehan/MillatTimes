@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import {
     Bell,
     Bookmark,
@@ -28,8 +29,8 @@ const PROFILE_OPTIONS = [
     {
         title: 'Content',
         items: [
-            { label: 'Bookmarks', icon: Bookmark, color: '#4b5563' },
-            { label: 'Downloads', icon: Download, color: '#4b5563' },
+            { label: 'Bookmarks', icon: Bookmark, color: '#4b5563', route: '/profile/bookmarks' },
+            { label: 'Downloads', icon: Download, color: '#4b5563', route: '/profile/downloads' },
         ]
     },
     {
@@ -41,16 +42,16 @@ const PROFILE_OPTIONS = [
     {
         title: 'App Settings',
         items: [
-            { label: 'Notifications', icon: Bell, color: '#4b5563' },
-            { label: 'Settings', icon: Settings, color: '#4b5563' },
-            { label: 'Language', icon: Languages, color: '#4b5563' },
+            { label: 'Notifications', icon: Bell, color: '#4b5563', disabled: true },
+            { label: 'Settings', icon: Settings, color: '#4b5563', route: '/profile/settings' },
+            { label: 'Language', icon: Languages, color: '#4b5563', route: '/profile/language' },
         ]
     },
     {
         title: 'Support & About',
         items: [
-            { label: 'About App', icon: Info, color: '#4b5563' },
-            { label: 'About Us', icon: Users, color: '#4b5563' },
+            { label: 'About App', icon: Info, color: '#4b5563', route: '/profile/about' },
+            { label: 'About Us', icon: Users, color: '#4b5563', route: '/profile/about-us' },
             { label: 'Visit YouTube', icon: Youtube, color: '#ef4444', url: 'https://www.youtube.com/@MillatTimesTV' },
             { label: 'Visit Website', icon: Globe, color: '#3b82f6', url: 'https://millattimes.com/' },
         ]
@@ -58,12 +59,16 @@ const PROFILE_OPTIONS = [
 ];
 
 export default function ProfileScreen() {
+    const router = useRouter();
     const insets = useSafeAreaInsets();
     const [showPremiumModal, setShowPremiumModal] = useState(false);
 
     const handlePress = (item) => {
         if (item.premium) {
             setShowPremiumModal(true);
+        } else if (item.route) {
+            // Use router.push() but ensure route exists
+            router.push(item.route);
         } else if (item.url) {
             Linking.openURL(item.url);
         }
@@ -84,8 +89,8 @@ export default function ProfileScreen() {
                         <Text style={styles.brandText}>Millat Times</Text>
                     </View>
                 </View>
-                <Pressable style={styles.loginButton}>
-                    <Text style={styles.loginButtonText}>Login / Sign Up</Text>
+                <Pressable style={[styles.loginButton, styles.disabledButton]} disabled={true}>
+                    <Text style={[styles.loginButtonText, styles.disabledButtonText]}>Login / Sign Up</Text>
                 </Pressable>
             </View>
 
@@ -108,7 +113,7 @@ export default function ProfileScreen() {
                 animationType="fade"
                 onRequestClose={() => setShowPremiumModal(false)}
             >
-                <Pressable 
+                <Pressable
                     style={styles.modalOverlay}
                     onPress={() => setShowPremiumModal(false)}
                 >
@@ -118,9 +123,9 @@ export default function ProfileScreen() {
                         </View>
                         <Text style={styles.modalTitle}>Premium Coming Soon</Text>
                         <Text style={styles.modalMessage}>
-                            We're working on bringing you an amazing premium experience with ad-free content and exclusive features. Stay tuned!
+                            We{'\''}re working on bringing you an amazing premium experience with ad-free content and exclusive features. Stay tuned!
                         </Text>
-                        <Pressable 
+                        <Pressable
                             style={styles.modalButton}
                             onPress={() => setShowPremiumModal(false)}
                         >
@@ -138,21 +143,23 @@ export default function ProfileScreen() {
                         {section.items.map((item, itemIdx) => (
                             <Pressable
                                 key={itemIdx}
-                                onPress={() => handlePress(item)}
+                                onPress={() => !item.disabled && handlePress(item)}
+                                disabled={item.disabled}
                                 style={[
                                     styles.optionItem,
-                                    itemIdx === section.items.length - 1 && styles.noBorder
+                                    itemIdx === section.items.length - 1 && styles.noBorder,
+                                    item.disabled && styles.disabledOption
                                 ]}
                             >
                                 <View style={styles.optionLeft}>
                                     <View style={[styles.iconContainer, { backgroundColor: item.premium ? '#fef9c3' : '#f3f4f6' }]}>
-                                        <item.icon size={20} color={item.color} />
+                                        <item.icon size={20} color={item.disabled ? '#d1d5db' : item.color} />
                                     </View>
-                                    <Text style={[styles.optionLabel, item.premium && styles.premiumLabel]}>
+                                    <Text style={[styles.optionLabel, item.premium && styles.premiumLabel, item.disabled && styles.disabledLabel]}>
                                         {item.label}
                                     </Text>
                                 </View>
-                                <ChevronRight size={18} color="#9ca3af" />
+                                <ChevronRight size={18} color={item.disabled ? '#e5e7eb' : '#9ca3af'} />
                             </Pressable>
                         ))}
                     </View>
@@ -160,7 +167,7 @@ export default function ProfileScreen() {
             ))}
 
             <View style={styles.footer}>
-                <Text style={styles.versionText}>Version 1.0.0</Text>
+                <Text style={styles.versionText}>© 2026 Millat Times — All Rights Reserved</Text>
             </View>
         </ScrollView>
     );
@@ -363,5 +370,21 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         fontFamily: 'NotoSans_600SemiBold',
+    },
+    disabledButton: {
+        backgroundColor: '#f3f4f6',
+        shadowOpacity: 0,
+        elevation: 0,
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+    },
+    disabledButtonText: {
+        color: '#9ca3af',
+    },
+    disabledOption: {
+        opacity: 0.5,
+    },
+    disabledLabel: {
+        color: '#9ca3af',
     },
 });
